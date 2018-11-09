@@ -14,7 +14,7 @@ def mask():
   mask_led = cv2.inRange(img, led_min, led_max)
   plt.imshow(cv2.cvtColor(mask_led, cv2.COLOR_GRAY2RGB))
 
-  # plt.show()
+  plt.show()
 
   # LEDを検出
   # led_contours, _ = cv2.findContours(mask_led, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -37,8 +37,9 @@ def mask():
   cy = []
   area = []
   for i in range(len(large_contours)):
-    cnt = led_contours[i]
+    cnt = large_contours[i]
     M = cv2.moments(cnt)
+    print M['m00']
     cx.append(int(M['m10']/M['m00']))
     cy.append(int(M['m01']/M['m00']))
     area.append(int(M['m00']))
