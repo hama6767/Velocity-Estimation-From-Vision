@@ -42,11 +42,11 @@ def mask():
   for i in range(len(large_contours)):
     cnt = large_contours[i]
     M = cv2.moments(cnt)
-    print M['m00']
+    # print M['m00']
     cx.append(int(M['m10']/M['m00']))
     cy.append(int(M['m01']/M['m00']))
     area.append(int(M['m00']))
-    print(cx[i], cy[i])
+    # print(cx[i], cy[i])
 
   # 最大面積のLEDのインデックスを取得
   largest_area_number = np.argmax(area)
@@ -54,13 +54,17 @@ def mask():
   right_area_number = np.argmax(cx)
   left_area_number = np.argmin(cx)
   
-  L1 = 0.02688
+  L1 = 0.02688 # ヨコ
+  L2 = 0.02217 # タテ
   a = 0.015
   W = 1280
-  h = cx[right_area_number] - cx [left_area_number]
-  L2 = L1 * (W / float(h))
-  b = a / float(h)
-  print L2
+  W2 = 720
+  h1 = cx[right_area_number] - cx [left_area_number] # 画像上の左右長さ px
+  h2 = cy[largest_area_number] - cy[top_area_number]
+
+  D1 = L1 * (W / float(h1))
+  D2 = L2 * (W2 / float(h2))
+  print D1,D2
 
 
 mask() 
