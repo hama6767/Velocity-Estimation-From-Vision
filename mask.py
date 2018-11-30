@@ -2,6 +2,9 @@ import cv2, matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 
+distance_of_array = 200 # mm
+sensor_size = 17.3 # y方向
+
 def mask():
 
   # マスク処理
@@ -47,9 +50,17 @@ def mask():
 
   # 最大面積のLEDのインデックスを取得
   largest_area_number = np.argmax(area)
-  print(largest_area_number)
+  top_area_number = np.argmin(cy)
+  right_area_number = np.argmax(cx)
+  left_area_number = np.argmin(cx)
+  
+  L1 = 0.02688
+  a = 0.015
+  W = 1280
+  h = cx[right_area_number] - cx [left_area_number]
+  L2 = L1 * (W / float(h))
+  b = a / float(h)
+  print L2
 
 
-
-
-mask()
+mask() 
