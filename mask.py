@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import cv2
+import csv
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,8 +11,14 @@ distance_of_array = 200 # mm
 sensor_size = 17.3 # y方向
 
 
+
 def mask():
   # LEDの写真からLEDのxy相対座標を出す
+  f = open('output.csv', 'w')
+  writer = csv.writer(f, lineterminator='\n')
+  csvlist = []
+  before_x = 0
+  before_y = 0
 
   #カメラ補正
   camera_matrix = np.array([[1.06105005e+003, 0.000000, 6.48830933e+002], [0.000000, 1.06279529e+003, 3.83095215e+002], [0., 0., 1.]])
@@ -22,7 +29,8 @@ def mask():
 
   # img = cv2.imread('c:\Users\makilab\Desktop\Docking-master\Docking-master\sample.jpg') # Errorのため絶対パスで指定　要改善
 
-  for i in range(100):
+
+  for i in range(110):
     img = cv2.imread('c:\Users\makilab\Desktop\Docking-master\Docking-master\images\img{0:05d}.jpg'.format(i),)
     
     
@@ -104,5 +112,24 @@ def mask():
     x = np.cos(3.1415 / 2 - relative_angle) * D1
     y = np.sin(3.1415 / 2 - relative_angle) * D1
     print x,y
+
+
+    Hz = 1.25 # logより逆算　ROSでは実際の稼働Hzを入れる
+
+    velocity_x = (x - before_x) / Hz
+    velocity_y = (y - before_y) / Hz
+    velocity_distance = np.sqrt(velocity_x **2 + velocity_y**2)
+
+    print velocity_x,velocity_y,velocity_distance
+
+    before_x = x
+    before_y = y
+    csvlist.append(velocity_y)
+
+  # 出力
+  writer.writerow(csvlist)
+
+  # ファイルクローズ
+  f.close()
 
 mask() 
