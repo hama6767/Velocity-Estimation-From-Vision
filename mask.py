@@ -19,6 +19,7 @@ def mask():
   csvlist = []
   before_x = 0
   before_y = 0
+  error_count = 1
 
   #カメラ補正
   camera_matrix = np.array([[1.06105005e+003, 0.000000, 6.48830933e+002], [0.000000, 1.06279529e+003, 3.83095215e+002], [0., 0., 1.]])
@@ -30,7 +31,7 @@ def mask():
   # img = cv2.imread('c:\Users\makilab\Desktop\Docking-master\Docking-master\sample.jpg') # Errorのため絶対パスで指定　要改善
 
 
-  for i in range(110):
+  for i in range(50):
     img = cv2.imread('c:\Users\makilab\Desktop\Docking-master\Docking-master\images\img{0:05d}.jpg'.format(i),)
     
     
@@ -66,6 +67,7 @@ def mask():
     # print number of contours
     print('number of led: %d' % len(large_contours))
     if not len(large_contours) == 4:
+      error_count = error_count + 1
       continue    
 
     # 重心計算
@@ -95,6 +97,7 @@ def mask():
     h1 = cx[right_area_number] - cx [left_area_number] # 画像上の左右長さ px
     h2 = (cy[right_area_number] + cy[left_area_number]) / 2 - cy[top_area_number]
 
+
     D1 = L1 * (W / float(h1))
     D2 = L2 * (W2 / float(h2))
     print D1
@@ -114,7 +117,7 @@ def mask():
     print x,y
 
 
-    Hz = 1.25 # logより逆算　ROSでは実際の稼働Hzを入れる
+    Hz = 1.25 * error_count # logより逆算　ROSでは実際の稼働Hzを入れる
 
     velocity_x = (x - before_x) / Hz
     velocity_y = (y - before_y) / Hz
@@ -125,6 +128,7 @@ def mask():
     before_x = x
     before_y = y
     csvlist.append(velocity_y)
+    error_count = 1
 
   # 出力
   writer.writerow(csvlist)
