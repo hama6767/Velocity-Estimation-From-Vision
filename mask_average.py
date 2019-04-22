@@ -43,7 +43,7 @@ def mask():
   # img = cv2.imread('c:\Users\makilab\Desktop\Docking-master\Docking-master\sample.jpg') # Errorのため絶対パスで指定　要改善
 
 
-  for i in range(113):
+  for i in range(56):
     img = cv2.imread('c:\Users\makilab\Desktop\Docking-master\Docking-master\images\img{0:05d}.jpg'.format(i+1),)
     
     mcn = mcn + 1
@@ -51,7 +51,7 @@ def mask():
 
 
     # マスク処理パラメータ
-    led_min = np.array([0, 150, 0], np.uint8)
+    led_min = np.array([0, 80, 0], np.uint8)
     led_max = np.array([255, 255, 255], np.uint8)
 
     #　読み込み　
@@ -69,7 +69,7 @@ def mask():
     # make copy of image
     led_and_contours = np.copy(img)
   
-    min_led_area = 5 # LEDエリアとして認識する最低領域面積　要パラメータ調整
+    min_led_area = 2 # LEDエリアとして認識する最低領域面積　要パラメータ調整
     large_contours = [cnt for cnt in led_contours if cv2.contourArea(cnt) > min_led_area]
 
   

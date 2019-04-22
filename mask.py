@@ -18,14 +18,19 @@ def mask():
   f = open('output.csv', 'w')
   writer = csv.writer(f, lineterminator='\n')
   csvlist = []
+  x = []
+  y = []
+  timestamp = []
   before_x = 0
   before_y = 0
   error_count = 1
+  calc_count = 0
   mcn = -1
   pixel_height = 720
   pixel_width = 1280
   angle_of_view = 62.2 * 3.1415 / 180
   sensor_size = 37.7 * 3.1415 / 180
+
   #カメラ補正
   camera_matrix = np.array([[1.06105005e+003, 0.000000, 6.48830933e+002], [0.000000, 1.06279529e+003, 3.83095215e+002], [0., 0., 1.]])
   distortion_params = np.array([-2.45146647e-001, 1.50185645e-001, 2.24484666e-003, -2.79057189e-003, 0.000000])
@@ -36,8 +41,8 @@ def mask():
   # img = cv2.imread('c:\Users\makilab\Desktop\Docking-master\Docking-master\sample.jpg') # Errorのため絶対パスで指定　要改善
 
 
-  for i in range(55):
-    img = cv2.imread('c:\Users\makilab\Desktop\Docking-master\Docking-master\images\img{0:05d}.jpg'.format(i),)
+  for i in range(113):
+    img = cv2.imread('c:\Users\makilab\Desktop\Docking-master\Docking-master\images\img{0:05d}.jpg'.format(i+1),)
     
     mcn = mcn + 1
     img_undistort = cv2.remap(img, map_func[0], map_func[1], cv2.INTER_AREA)
@@ -70,9 +75,10 @@ def mask():
     cv2.drawContours(led_and_contours, large_contours, -1, (255,0,0))
   
     # print number of contours
-    print('number of led: %d' % len(large_contours))
+   # print('number of led: %d' % len(large_contours))
     if not len(large_contours) == 4:
       error_count = error_count + 1
+      print mcn #,"error!"
       continue    
 
     # 重心計算
@@ -114,31 +120,80 @@ def mask():
     oz = ox * oz2
     oy = np.sin(theta) * r
     theta2 = np.arctan(cx[largest_area_number]) - theta
+
+    # 例外処理
+    if theta2 == 0.0:
+      error_count = error_count + 1
+      print mcn #"Zero division error!"
+      continue    
+
+    if ox < 1.0:
+      #print ox,oy
+      error_count = error_count + 1
+      print mcn #"Calculate error!"
+      continue   
+
     sin_alpha_1 = ((2*r / (h * np.tan(theta2))) - np.sqrt((2*r / (h * np.tan(theta2)))**2 - 4 * (1 + 1/((np.tan(theta2))**2)) * (r*r/h/h - 1)))/ (2 *  (1 + 1/((np.tan(theta2))**2)))
     sin_alpha_2 = ((2*r / (h * np.tan(theta2))) + np.sqrt((2*r / (h * np.tan(theta2)))**2 - 4 * (1 + 1/((np.tan(theta2))**2)) * (r*r/h/h - 1)))/ (2 *  (1 + 1/((np.tan(theta2))**2)))
-    D = (2*r / (h * np.tan(theta2)))**2 - 4 * (1 + 1/((np.tan(theta2))**2)) * (r*r/h/h - 1)
+
 
     alpha2 = np.arcsin(sin_alpha_1)
     alpha = theta + 3.14 - alpha2
-    print ox,r
-
-
-   
-
-    # 向き計算
-    
     
 
-    relative_angle = ( (cx[largest_area_number] * angle_of_view / pixel_width) - angle_of_view / 2 ) * 3.1415 / 180 # 相対角を計算
 
-    #print relative_angle
+    # 速度計算
 
-    # 座標を出力
+    if calc_count <= 4:
+      x.append(ox)
+      y.append(oy)
+      if calc_count == 0:
+         timestamp.append(0)
+      else:
+         timestamp.append(timestamp[-1] + 1.25 + (error_count - 1) * 1.25)
+      A = np.array([timestamp,np.ones(len(x))])
+      A = A.T
+      first = timestamp[0]
 
+     # vx,bx = np.linalg.lstsq(A,x)[0]
+     # vy,by = np.linalg.lstsq(A,y)[0]
+      vx = np.average(x)
+      vy = np.average(y)
+      print mcn,vx,vy #"precalc"
+      calc_count = calc_count + 1
+    else:
+
+      x.append(ox)
+      y.append(oy)      
+      x.pop(0)
+      y.pop(0)
+      timestamp.append(timestamp[-1] + 1.25 + (error_count - 1) * 1.25)
+      timestamp.pop(0)
+      A = np.array([timestamp,np.ones(len(timestamp))])
+      A = A.T
+      #print x,timestamp
+
+      first = timestamp[0]
+      for i in range(len(timestamp)):
+        timestamp[i] = timestamp[i] - first 
+      #vx,bx = np.linalg.lstsq(A,x)[0]
+      #vy,by = np.linalg.lstsq(A,y)[0]
+      vx = np.average(x)
+      vy = np.average(y)
+
+      print mcn,vx,vy
 
 
     Hz = 1.25 * error_count # logより逆算　ROSでは実際の稼働Hzを入れる
 
+    velocity_x = (ox - before_x) / Hz
+    velocity_y = (oy - before_y) / Hz
+    velocity_distance = np.sqrt(velocity_x **2 + velocity_y**2)
+
+   # print mcn,velocity_x,velocity_y
+
+    before_x = ox
+    before_y = oy
     error_count = 1
     
 
