@@ -22,9 +22,10 @@ img_pnt = np.array(\
 (320.        , 317.74146755), \
 ])
 
-f = 160
-Cu = 320
-Cv = 240
+f = 3393
+# f = 160 # P20 lite camera 3.8mm sensor pixel size 1.12um
+Cu = 2305 # 320 
+Cv = 1728 # 240
 
 ## Calculate Normalize Point
 def calculateNormailzePnt(img_pnt):
