@@ -144,6 +144,32 @@ def calculateRotationMatrixViaQRFactorization(P):
   K = np.matrix([[a, b, c], [0, d, e], [0, 0, f]])
   
   return R, K
+
+def isRotationMatrix(R) :
+    Rt = np.transpose(R)
+    shouldBeIdentity = np.dot(Rt, R)
+    I = np.identity(3, dtype = R.dtype)
+    n = np.linalg.norm(I - shouldBeIdentity)
+    return n < 1e-6
+
+def rotationMatrixToEulerAngles(R) :
+ 
+  assert(isRotationMatrix(R))
+     
+  sy = np.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+     
+  singular = sy < 1e-6
+ 
+  if  not singular :
+        x = np.arctan2(R[2,1] , R[2,2])
+        y = np.arctan2(-R[2,0], sy)
+        z = np.arctan2(R[1,0], R[0,0])
+  else :
+        x = np.arctan2(-R[1,2], R[1,1])
+        y = np.arctan2(-R[2,0], sy)
+        z = 0
+ 
+  return np.array([x, y, z])
   
 
 print("Solve PNP Problem!")
@@ -161,6 +187,8 @@ P = calculateProjectionMatrix(M)
 # 4. Calculate R and K matrix via QR factorization.
 R, K = calculateRotationMatrixViaQRFactorization(P)
 
+Eular_Angles = rotationMatrixToEulerAngles(R)
+
 
 print("Camera Intrisic Matrix")
 print(K / K[2, 2])
@@ -173,3 +201,7 @@ print(np.linalg.inv(K) * np.matrix(P[:, 3]).T)
 print()
 print("Camera Rotation : ")
 print(R)
+
+print()
+print("Eular Angles : ")
+print(Eular_Angles)
