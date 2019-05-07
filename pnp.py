@@ -3,12 +3,12 @@ import numpy as np
 world = np.array(\
 [\
 ( 0.000,  0.000,  0.000), \
-( -0.055, 0.000,  0.000), \
-( 0.000, 0.022,  0.000), \
-( -0.055, 0.022,  0.000), \
-( 0.000,  0.000,  0.088), \
-( 0.000,  0.022,  0.088), \
-( -0.055,  0.022,  0.088), \
+( 0.000, 0.055,  0.000), \
+( 0.000, 0.000,  0.022), \
+( 0.000, 0.055,  0.022), \
+( 0.088,  0.000,  0.000), \
+( 0.088,  0.000,  0.022), \
+( 0.088,  0.055,  0.022), \
 ])
 
 img_pnt = np.array(\
@@ -144,6 +144,8 @@ def calculateRotationMatrixViaQRFactorization(P):
   K = np.matrix([[a, b, c], [0, d, e], [0, 0, f]])
   
   return R, K
+
+# Rotation matrix to Eular https://www.learnopencv.com/rotation-matrix-to-euler-angles/
 
 def isRotationMatrix(R) :
     Rt = np.transpose(R)
