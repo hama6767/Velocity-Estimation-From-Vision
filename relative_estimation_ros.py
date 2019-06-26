@@ -1,7 +1,20 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+Vision-based position estimater
+4 LEDs
+@author: Yuya Hamamatsu
+2017/7/16
+'''
+import math
+import cv2
 import rospy
+from cv_bridge import CvBridge
 from auv.msg import AUVStatus
 from mavros_msgs.msg import OverrideRCIn
 from geometry_msgs.msg import Vector3
+from sensor_msgs.msg import Image
+import matplotlib.pyplot as plt
 
 
 class VisionEstimation(object):
@@ -11,12 +24,25 @@ class VisionEstimation(object):
         self._rate = rospy.Rate(self._hz)
         self._img = Image()
         self._buff_img = Image()
+        self._mask_img = Image()
+        self._buff_mask_img = Image()
 
         self._relative_position = Vector3()
         self._pub_relative_position = rospy.Publisher(
             "relative_position", Vector3, queue_size=1)
 
+        self._pub_mask_img = rospy.Publisher(
+            "mask_image", Image, queue_size=10)
+
         rospy.Subscriber("usb_cam/image_raw", Image, self._set_buff_img)
+
+        self._bridge = CvBridge()
+
+    def _set_buff_img(self, msg):
+        self._buff_img = msg
+
+    def _update_subscribers(self):
+        self._img = self._buff_img
 
     def _mask(self)
         if self._img.height == 0: 
@@ -53,7 +79,7 @@ class VisionEstimation(object):
         # draw contours
         cv2.drawContours(led_and_contours, large_contours, -1, (255,0,0))
     
-        # print number of contours
+        # LEDの数を判定　4以外なら無視
         print('number of led: %d' % len(large_contours))
         if not len(large_contours) == 4:
         error_count = error_count + 1
@@ -115,8 +141,10 @@ class VisionEstimation(object):
         self._relative_position.x = ox
         self._relative_position.y = oy
         self._relative_position.z = oz
+
+        # publish
         self._relative_position.publish(self._relative_position)
-      
+        self._mask_image.publish(mask_led)
 
     def run(self):
         while not rospy.is_shutdown():
